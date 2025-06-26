@@ -1,6 +1,7 @@
 import { useMutation } from '@apollo/client'
 import { useState } from 'react'
 import { ALL_PERSONS, CREATE_PERSON } from '../queries'
+import { updateCache } from '../App'
 
 const PersonForm = ({ setError }) => {
   const [name, setName] = useState('')
@@ -14,30 +15,30 @@ const PersonForm = ({ setError }) => {
       setError(messages)
     },
     update: (cache, response) => {
-      cache.updateQuery({ query: ALL_PERSONS }, ({ allPersons }) => {
-        return {
-          allPersons:
-            allPersons.concat(response.data.addPerson)
-        }
-      })
+      updateCache(cache, { query: ALL_PERSONS }, response.data.addPerson)
     }
   })
   
-  const submit = (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault()
+    console.log(name, phone, street, city)
 
+    try {
     createPerson({ variables: { name, phone: phone.length > 0 ? phone : undefined, street, city }})
 
     setName('')
     setPhone('')
     setStreet('')
     setCity('')
+    } catch (error) {
+      console.log('error saving', error)
+    }
   }
 
   return (
     <div>
       <h2>create new</h2>
-      <form onSubmit={submit}>
+      <form onSubmit={handleSubmit}>
         <div>
           name <input value={name} onChange={({ target }) => setName(target.value)} />
         </div>
@@ -50,7 +51,7 @@ const PersonForm = ({ setError }) => {
         <div>
           city <input value={city} onChange={({ target }) => setCity(target.value)} />
         </div>
-        <button type='submit'>add</button>
+        <button type="submit">add</button>
       </form>
     </div>
   )
